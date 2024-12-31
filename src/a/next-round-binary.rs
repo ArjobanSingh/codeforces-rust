@@ -78,5 +78,5 @@ fn main() {
         }
     }
 
-    writeln!(out, "{}", if r < 0 { 0 } else { r + 1 }).ok();
+    writeln!(out, "{}", r + 1).ok();
 }
