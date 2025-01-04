@@ -82,6 +82,32 @@ fn backtrack<'a>(chunk: Chunk<'a>, set: &mut HashSet<Chunk<'a>>) {
     }
 }
 
+fn backtrack_iter(chunk: String, set: &mut HashSet<String>) {
+    let mut stack: Vec<String> = Vec::new();
+    stack.push(chunk);
+
+    while let Some(chunk) = stack.pop() {
+        let chunk_size = chunk.len();
+        if chunk_size == 0 || set.contains(&chunk) {
+            continue;
+        }
+        set.insert(chunk.clone());
+
+        // Remove the 2nd(1 idx) char
+        let mut other = String::new();
+        other.push_str(&chunk[..1]);
+        if chunk_size > 2 {
+            other.push_str(&chunk[2..]);
+        }
+        stack.push(other);
+
+        // Remove the 1st (0th idx) char
+        if chunk_size > 1 {
+            stack.push(chunk[1..].to_string());
+        }
+    }
+}
+
 fn main() {
     let mut input = String::new();
     io::stdin()
