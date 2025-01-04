@@ -1,6 +1,6 @@
 use std::{
     cmp::{self},
-    collections::{BinaryHeap, HashMap},
+    collections::HashMap,
     io::{self, BufWriter, Read, Write},
 };
 
@@ -55,6 +55,7 @@ fn main() {
 
         let mut num_map: HashMap<u64, i32> = HashMap::with_capacity(n as usize);
 
+        // add the num: with their count in map
         for num in lines
             .next()
             .expect("Error reading line")
@@ -64,26 +65,31 @@ fn main() {
             num_map.entry(num).and_modify(|p| *p += 1).or_insert(1);
         }
 
-        let mut heap: BinaryHeap<State> = BinaryHeap::new();
+        let mut vec: Vec<State> = Vec::with_capacity(num_map.len());
         for (num, count) in num_map.into_iter() {
-            heap.push(State { num, count });
+            vec.push(State { num, count });
         }
-
-        let mut vec = heap.into_sorted_vec();
+        vec.sort(); // sort based on occurrences count
 
         let mut result = 0;
         let mut l: i32 = 0;
         let mut r = vec.len() as i32 - 1;
 
+        // Iterate from start to end, to find how many flat nums can be replaced
+        // such that, the removal of them becomes fast, to make the array empy.
         while l <= r {
+            // Inner loop only runs once till the K becomes 0. Basically getting
+            // the min occurrences items from array and keep consuming k till it
+            // is possible, and move the l pointer, if some item is consumed.
             while k > 0 {
                 let smallest = vec[l as usize];
                 if k >= smallest.count {
-                    // This whole can be converted
+                    // All occurences of this min repated number can be replaced
                     vec[l as usize].count = 0;
                     l += 1;
                 } else {
-                    // the whole cannot be converted, so update this nums' count only
+                    // All occurences cannot be converted, so update this nums' count
+                    // to be prevCount - conversions available.
                     vec[l as usize].count -= k;
                 }
                 k -= smallest.count;
