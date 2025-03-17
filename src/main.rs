@@ -3,14 +3,6 @@ use std::{
     io::{self, BufWriter, Read, Write},
 };
 
-fn diff_seq(nums: &Vec<i64>) -> Vec<i64> {
-    let mut vec = Vec::with_capacity(nums.len() - 1);
-    for i in 1..nums.len() {
-        vec.push(nums[i] - nums[i - 1]);
-    }
-    vec
-}
-
 fn main() {
     let mut input = String::new();
     io::stdin()
@@ -29,32 +21,60 @@ fn main() {
         .expect("Error in parsing t");
 
     for _ in 0..t {
-        lines.next().expect("error reading n");
-
-        let mut max = i64::MIN;
-
-        let mut nums: Vec<i64> = lines
+        let input: Vec<usize> = lines
             .next()
-            .expect("Error going through n")
+            .expect("error reading line")
             .split_ascii_whitespace()
             .filter_map(|it| it.parse().ok())
             .collect();
 
-        loop {
-            if nums.len() == 1 {
-                max = cmp::max(max, nums[0]);
-                break;
-            }
+        let n = input[0];
+        let m = input[1];
 
-            // get max sum of current array and compare.
-            max = cmp::max(max, nums.iter().fold(0, |acc, cur| acc + cur));
+        // basically to track how many buckets can paint different no. of planks
+        let mut freq: Vec<i64> = vec![0; n + 1];
 
-            // get the diff sequence.
-            let updated = diff_seq(&nums);
-            max = cmp::max(max, updated.iter().fold(0, |acc, cur| acc + cur).abs());
-            nums = updated;
+        let bucket_sizes: Vec<i64> = lines
+            .next()
+            .expect("error reading line 2")
+            .split_ascii_whitespace()
+            .filter_map(|it| it.parse().ok())
+            .collect();
+
+        for size in bucket_sizes.iter() {
+            freq[cmp::min(n, *size as usize)] += 1;
         }
-        writeln!(out, "{}", max).expect("Error writing empty line");
+
+        let mut sum = 0;
+        for idx in (0..freq.len()).rev() {
+            freq[idx] += sum;
+            sum = freq[idx];
+        }
+
+        let mut ans: i64 = 0;
+        for size in bucket_sizes.iter() {
+            let mut cur_size = *size;
+            loop {
+                if cur_size < 0 {
+                    break;
+                }
+
+                let remain_buc = (n as i64) - cur_size;
+                let remain = freq[remain_buc as usize];
+                if remain == 0 {
+                    break;
+                }
+
+                ans += if remain_buc > *size {
+                    remain
+                } else {
+                    remain - 1
+                };
+                cur_size -= 1;
+            }
+        }
+
+        writeln!(out, "{ans}").expect("Error writing ans line");
     }
 
     out.flush().ok();
